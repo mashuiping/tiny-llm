@@ -18,9 +18,11 @@ Tensor::Tensor(std::vector<int> shape, Device device, bool requires_grad)
         data_ = malloc(n * sizeof(float));
     }
     strides_.resize(shape_.size());
-    strides_[shape_.size() - 1] = 1;
-    for (int i = shape_.size() - 2; i >= 0; --i) {
-        strides_[i] = strides_[i + 1] * shape_[i + 1];
+    if (shape_.size() > 1) {
+        strides_[shape_.size() - 1] = 1;
+        for (int i = shape_.size() - 2; i >= 0; --i) {
+            strides_[i] = strides_[i + 1] * shape_[i + 1];
+        }
     }
 }
 
@@ -130,6 +132,8 @@ int Tensor::numel() const {
     return n;
 }
 
+// NOTE: view() and transpose() create non-owning tensors that share the original's data.
+// The original tensor must outlive any view/transpose returned. This is acceptable for MVP phase.
 Tensor Tensor::view(std::vector<int> shape) {
     Tensor out = *this;
     out.shape_ = std::move(shape);
@@ -156,6 +160,7 @@ Tensor Tensor::cuda() const {
 }
 
 Tensor Tensor::transpose(int dim0, int dim1) {
+    assert(dim0 >= 0 && dim0 < (int)shape_.size() && dim1 >= 0 && dim1 < (int)shape_.size());
     Tensor out = *this;
     std::swap(out.shape_[dim0], out.shape_[dim1]);
     std::swap(out.strides_[dim0], out.strides_[dim1]);
