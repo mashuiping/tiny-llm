@@ -4,7 +4,7 @@
 #include <vector>
 #include <cmath>
 #include "model.hpp"
-#include "tokenizer.cpp"
+#include "tokenizer.hpp"
 
 std::string generate_text(PoetryModel& model, const Tokenizer& tokenizer,
                          const std::string& prompt, int max_new_tokens = 50) {
@@ -34,7 +34,8 @@ void run_generation(const std::string& model_path, const std::string& prompt) {
     // PoetryModel model;
     // model.load(model_path);
 
-    std::string generated = generate_text(model, tokenizer, prompt);
+    // For MVP: just return the prompt
+    std::string generated = prompt + " [generation requires full model integration]";
     std::cout << "Generated: " << generated << std::endl;
 }
 
