@@ -27,14 +27,17 @@ __global__ void layernorm_kernel(
     for (int j = tid; j < d; j += blockDim.x) {
         mean += input[row * d + j];
     }
-    // Warp-level reduction for mean
-    float warp_mean = mean;
-    for (int offset = 16; offset >= 1; offset /= 2) {
-        warp_mean += __shfl_down_sync(0xffffffff, warp_mean, offset);
+    // Warp-level reduction for mean (only tid < 32 participate)
+    __shared__ float s_mean;
+    if (tid < 32) {
+        float warp_mean = mean;
+        for (int offset = 16; offset >= 1; offset /= 2) {
+            warp_mean += __shfl_down_sync(0xffffffff, warp_mean, offset);
+        }
+        if (tid == 0) s_mean = warp_mean;
     }
-    if (tid == 0) mean = warp_mean;
     __syncthreads();
-    mean /= d;
+    mean = s_mean / d;
 
     // Step 2: Compute variance
     float var = 0.0f;
@@ -42,14 +45,17 @@ __global__ void layernorm_kernel(
         float diff = input[row * d + j] - mean;
         var += diff * diff;
     }
-    // Warp-level reduction for var
-    float warp_var = var;
-    for (int offset = 16; offset >= 1; offset /= 2) {
-        warp_var += __shfl_down_sync(0xffffffff, warp_var, offset);
+    // Warp-level reduction for var (only tid < 32 participate)
+    __shared__ float s_var;
+    if (tid < 32) {
+        float warp_var = var;
+        for (int offset = 16; offset >= 1; offset /= 2) {
+            warp_var += __shfl_down_sync(0xffffffff, warp_var, offset);
+        }
+        if (tid == 0) s_var = warp_var;
     }
-    if (tid == 0) var = warp_var;
     __syncthreads();
-    var /= d;
+    var = s_var / d;
     float inv_std = rsqrtf(var + eps);
 
     // Step 3: Normalize and apply gamma/beta

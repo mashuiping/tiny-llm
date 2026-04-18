@@ -4,7 +4,7 @@
 #include "layernorm.hpp"
 
 LayerNorm::LayerNorm(int d_model) : d_model_(d_model) {
-    gamma_ = Tensor::randn({d_model}, Device::CUDA, true) * 0.02f;  // gamma = 1 by default
+    gamma_ = Tensor::ones({d_model}, Device::CUDA, true);
     beta_ = Tensor::zeros({d_model}, Device::CUDA, true);
 }
 
