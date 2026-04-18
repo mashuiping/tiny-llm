@@ -1,1 +1,2 @@
-// Stub - will be implemented as needed
+// kernels/utils.cu
+// Placeholder for utility CUDA kernels
