@@ -45,30 +45,8 @@ Tensor PoetryModel::forward(const Tensor& input_ids) {
 }
 
 Tensor PoetryModel::generate(const Tensor& input_ids, int max_new_tokens) {
-    // Greedy decoding for MVP
-    Tensor ids = input_ids;
-    for (int i = 0; i < max_new_tokens; ++i) {
-        Tensor logits = forward(ids);
-        // Get last token logits: [batch, seq, vocab] -> [vocab]
-        int seq_len = ids.shape_[1];
-        float* logits_data = logits.cpu().data_cpu();
-        int vocab = logits.shape_[2];
-        // Last position: logits[seq_len-1]
-        int last_idx = (seq_len - 1) * vocab;
-
-        // Greedy: pick argmax
-        int max_id = 0;
-        float max_val = -INFINITY;
-        for (int v = 0; v < vocab; ++v) {
-            if (logits_data[last_idx + v] > max_val) {
-                max_val = logits_data[last_idx + v];
-                max_id = v;
-            }
-        }
-
-        // Append to ids (simplified - would grow tensor)
-        // For MVP: just return after one step
-        break;
-    }
-    return ids;
+    // TODO: implement proper autoregressive generation
+    // This requires a dynamic computation graph that can grow sequence length
+    assert(false && "generate() not fully implemented - TODO");
+    return forward(input_ids);
 }
