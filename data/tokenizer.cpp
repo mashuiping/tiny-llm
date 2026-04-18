@@ -45,11 +45,6 @@ public:
         eos_id_ = 3;
     }
 
-    int pad_id_ = 0;
-    int unk_id_ = 1;
-    int bos_id_ = 2;
-    int eos_id_ = 3;
-
     std::vector<int> encode(const std::string& text) {
         std::vector<int> ids;
         ids.push_back(bos_id_);
