@@ -21,7 +21,8 @@ __global__ void dropout_forward_kernel(
     if (idx >= n) return;
 
     if (training) {
-        // Generate random mask
+        // Note: Using rand() here is a known MVP limitation.
+        // Threads may get correlated values. For production, use cuRAND (curand_uniform).
         float r = (float)rand() / (float)RAND_MAX;
         if (r < dropout_prob) {
             mask[idx] = 0.0f;
