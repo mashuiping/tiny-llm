@@ -11,6 +11,7 @@ SRC = main.cpp core/tensor.cpp core/autograd.cpp core/optimizer.cpp layers/embed
 
 all: train generate
 
+# train and generate targets intentionally use identical sources but produce different binaries
 train: $(SRC) $(KERNELS)
 	$(NVCC) $(NVCC_FLAGS) $(CUDA_ARCH) $(INCLUDES) -o train $(SRC) $(KERNELS) -lcublas
 
