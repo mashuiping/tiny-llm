@@ -1,13 +1,11 @@
 #include "tensor.hpp"
 #include "cuda_utils.hpp"
+#include "autograd.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <random>
 #include <algorithm>
 #include <cmath>
-
-// Forward declare Context from autograd.hpp (will be filled in Task 4)
-class Context;
 
 Tensor::Tensor(std::vector<int> shape, Device device, bool requires_grad)
     : shape_(std::move(shape)), device_(device), requires_grad_(requires_grad), is_leaf_(true) {
@@ -167,13 +165,38 @@ Tensor Tensor::transpose(int dim0, int dim1) {
     return out;
 }
 
-// Stub implementations for operators (will be filled in Task 4)
-Tensor Tensor::operator+(const Tensor& other) { assert(false && "not implemented"); }
-Tensor Tensor::operator*(const Tensor& other) { assert(false && "not implemented"); }
-Tensor Tensor::matmul(const Tensor& other) { assert(false && "not implemented"); }
-Tensor Tensor::softmax(int dim) { assert(false && "not implemented"); }
-Tensor Tensor::relu() { assert(false && "not implemented"); }
-Tensor Tensor::sigmoid() { assert(false && "not implemented"); }
-Tensor Tensor::log_() { assert(false && "not implemented"); }
-Tensor Tensor::sum(int dim) { assert(false && "not implemented"); }
-void Tensor::backward() { assert(false && "not implemented"); }
+Tensor Tensor::operator+(const Tensor& other) {
+    return call_function(std::make_shared<AddFunction>(), {*this, other});
+}
+
+Tensor Tensor::operator*(const Tensor& other) {
+    return call_function(std::make_shared<MulFunction>(), {*this, other});
+}
+
+Tensor Tensor::matmul(const Tensor& other) {
+    return call_function(std::make_shared<MatMulFunction>(), {*this, other});
+}
+
+Tensor Tensor::softmax(int dim) {
+    return call_function(std::make_shared<SoftmaxFunction>(dim), {*this});
+}
+
+Tensor Tensor::relu() {
+    return call_function(std::make_shared<ReLUFunction>(), {*this});
+}
+
+Tensor Tensor::sigmoid() {
+    return call_function(std::make_shared<SigmoidFunction>(), {*this});
+}
+
+Tensor Tensor::log_() {
+    return call_function(std::make_shared<LogFunction>(), {*this});
+}
+
+Tensor Tensor::sum(int dim) {
+    return call_function(std::make_shared<SumFunction>(dim), {*this});
+}
+
+void Tensor::backward() {
+    assert(false && "backward() - full implementation pending");
+}
