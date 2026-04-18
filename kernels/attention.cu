@@ -7,9 +7,9 @@
 
 // ============================================================================
 // Attention Forward Kernel
-// Q: [batch, seq_len, d_model] -> reshaped to [batch, heads, seq_len, d_k]
-// K: [batch, seq_len, d_model] -> reshaped to [batch, heads, seq_len, d_k]
-// V: [batch, seq_len, d_model] -> reshaped to [batch, heads, seq_len, d_v]
+// Q: [batch, heads, seq_len, d_k]
+// K: [batch, heads, seq_len, d_k]
+// V: [batch, heads, seq_len, d_v]
 // Output: [batch, heads, seq_len, d_v]
 // ============================================================================
 
@@ -23,7 +23,8 @@ void attention_cuda(const Tensor& Q, const Tensor& K, const Tensor& V,
     // Step 1: Q @ K^T / sqrt(d_k)
     // Q: [batch, heads, seq, d_k], K: [batch, heads, seq, d_k]
     // scores: [batch, heads, seq, seq]
-    Tensor scores = Tensor::zeros({batch, n_heads, seq_len, seq_len}, Device::CUDA, false);
+    // Note: scores_reshaped below holds the actual computation result
+    Tensor scores;
 
     // For each head, compute Q @ K^T
     // Simplified: treat as batched matmul across heads
