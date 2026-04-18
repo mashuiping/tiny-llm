@@ -33,11 +33,10 @@ Tensor Linear::forward(const Tensor& input) {
     Tensor output_flat = output.view({batch_dim, out_features_});
 
     // y = x @ w^T + b
-    gemm_cuda(input_flat, weight_, output_flat, false, false, 1.0f, 0.0f);
+    gemm_cuda(input_flat, weight_, output_flat, false, true, 1.0f, 0.0f);
 
     if (bias_) {
         // Add bias: broadcast [1, out_features] to [batch, out_features]
-        Tensor bias_view = bias_.view({1, out_features_});
         Tensor bias_broadcast = Tensor::zeros({batch_dim, out_features_}, Device::CUDA, false);
         // Fill bias broadcast with bias values
         const float* b = bias_.data_cuda();
