@@ -1,0 +1,3 @@
+# Extra excludes for Pod sync (in addition to `git ls-files --exclude-standard`).
+docs/
+.git/
