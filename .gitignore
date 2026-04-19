@@ -1,1 +1,8 @@
 .worktrees/
+
+
+# Ignore DevSpace cache and log folder
+.devspace/
+
+# Local kubectl sync config (see tools/k8s/k8s.env.example)
+tools/k8s/k8s.env
