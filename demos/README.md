@@ -2,6 +2,16 @@
 
 These programs live under `demos/` and are **not** linked against the main project’s `core/`, `kernels/`, etc.
 
+## 学习资料（每个 phase 一份）
+
+各子目录下的 `LEARN.md`：背景说明、Mermaid 示意图、扩展阅读链接、费曼式自检提示与自测题（含参考答案）。
+
+- `phase01_infra/LEARN.md` — GEMM / CUDA 内存与分块
+- `phase02_ops_autograd/LEARN.md` — Softmax、LayerNorm、Attention、gradcheck
+- `phase03_model/LEARN.md` — 小模型与初始化直觉
+- `phase04_train_generate/LEARN.md` — tokenizer、训练、生成
+- `phase05_extensions_opt/LEARN.md` — FP16 与数值权衡
+
 ## Build
 
 From the **repository root**:
