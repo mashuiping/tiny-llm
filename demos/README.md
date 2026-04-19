@@ -4,7 +4,7 @@ These programs live under `demos/` and are **not** linked against the main proje
 
 ## 学习资料（每个 phase 一份）
 
-各子目录下的 `LEARN.md`：背景说明、Mermaid 示意图、扩展阅读链接、费曼式自检提示与自测题（含参考答案）。
+各子目录 `LEARN.md`：说明、图、链接、自检、自测题（附答案）。
 
 - `phase01_infra/LEARN.md` — GEMM / CUDA 内存与分块
 - `phase02_ops_autograd/LEARN.md` — Softmax、LayerNorm、Attention、gradcheck

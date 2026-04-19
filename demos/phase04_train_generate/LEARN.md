@@ -1,6 +1,6 @@
-# Phase 04 学习卡片：数据、Tokenizer、训练与生成
+# Phase 04：数据、Tokenizer、训练与生成
 
-本目录 demo 做了一件「最小闭环」：读一小段文本 → 字符级词表 → 滑窗数据集 → **SGD / AdamW** 训练一个微型语言模型 → **贪心 / 温度采样**生成。
+读文本 → 字符词表 → 滑窗 batch → **SGD / AdamW** 训小 LM → **贪心 / 温度**生成。
 
 ---
 
@@ -8,12 +8,12 @@
 
 - **Tokenizer（字符级）**：把字符串映射成整数序列；词表小、实现简单，适合先理解「token 是什么」。
 - **自回归下一词预测**：用当前上下文预测下一个 token；训练时目标右移一位（`dataset` 里的 `x` 与 `y`）。
-- **优化器**：SGD 直白；Adam 用动量与二阶矩估计（本 demo 是教学版写法，不等价于工业级 PyTorch，但足够看趋势）。
+- **优化器**：SGD；Adam（动量 + 二阶矩）。本 demo 写法简化，不等价 PyTorch 实现，只看趋势。
 - **生成**：贪心 = 每步取 argmax；温度 = 把 logits 缩放后再 softmax，控制「更随机还是更确定」。
 
 ---
 
-## 2. 一张图：自回归训练在优化什么
+## 2. 自回归训练在优化什么
 
 ```mermaid
 flowchart TB
@@ -24,8 +24,8 @@ flowchart TB
   x --> LM --> logits --> CE
 ```
 
-> 想读更「宏观」的科普：tutorialQ 这篇讲 tokens / transformers 的入口文章（英文）：  
-> https://tutorialq.com/ai/machine-learning/how-llms-work
+tokens / transformer 入门（英文）：  
+https://tutorialq.com/ai/machine-learning/how-llms-work
 
 ---
 
@@ -45,18 +45,18 @@ flowchart TB
 
 ## 4. 扩展阅读
 
-1. How LLMs Work（tokens、transformer 科普向）：  
+1. How LLMs Work  
    https://tutorialq.com/ai/machine-learning/how-llms-work
-2. Illustrated Transformer（看「输出概率分布」那一节与整体结构）：  
+2. Illustrated Transformer  
    https://jalammar.github.io/illustrated-transformer/
-3. Adam 论文（想深入优化器时读）：  
+3. Adam  
    https://arxiv.org/abs/1412.6980
 
 ---
 
-## 5. 费曼学习法：讲清楚「为什么要右移一位」
+## 5. 讲清楚「为什么要右移一位」
 
-请你回答：
+回答：
 
 1. 为什么 `y[t]` 通常等于 `x[t+1]`？  
 2. 交叉熵损失在「分类」问题里扮演什么角色？  

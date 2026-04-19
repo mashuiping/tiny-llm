@@ -1,6 +1,6 @@
-# Phase 03 学习卡片：从张量到小「模型」
+# Phase 03：从张量到小模型
 
-本目录的 demo 用 **CPU 上的极简网络** 演示：嵌入（embedding）→ 线性/ReLU → 标量预测 → MSE。目的是让你把「模型 = 一堆可微算子拼起来」这件事跑通，再去对照大项目里的 Transformer。
+本目录 demo：**CPU** 上 embedding → 线性/ReLU → 标量 → MSE。把可微算子串成模型，再对照大仓库里的 Transformer。
 
 ---
 
@@ -8,11 +8,11 @@
 
 - **Embedding**：把离散 token id 变成连续向量（查表）。
 - **小前向网络**：矩阵乘 + 偏置 + 非线性，把「池化后的句子向量」映射到标量。
-- **Xavier / Kaiming 的直觉**：初始化不要太大也不要太小，避免一开始梯度爆炸或消失（本 demo 用简化的缩放形式）。
+- **Xavier / Kaiming**：初始化别太大太小，减轻一开始梯度炸/没（本 demo 用简化缩放）。
 
 ---
 
-## 2. 一张图：从 token 到标量输出
+## 2. 从 token 到标量输出
 
 ```mermaid
 flowchart LR
@@ -25,32 +25,32 @@ flowchart LR
   ids --> E --> pool --> W1 --> w2 --> loss
 ```
 
-> 想继续「看图学大模型」：仍然推荐从 Illustrated Transformer 的「输入嵌入 + 位置编码」那一节开始对照：  
-> https://jalammar.github.io/illustrated-transformer/
+对照 embedding / 位置信息可从 Illustrated Transformer 里相关小节读起：  
+https://jalammar.github.io/illustrated-transformer/
 
 ---
 
 ## 3. 和本目录代码怎么对应
 
 - `model.hpp` / `model.cpp`：`TinyPoetryModel` 的张量都用 `std::vector<float>` 表示，便于阅读。
-- `main.cpp`：打印 `loss` 与 `emb` 的均值方差，做「训练没炸」的最粗检查。
+- `main.cpp`：打印 `loss`、`emb` 的均值方差，粗看是否异常。
 
 ---
 
 ## 4. 扩展阅读
 
-1. Illustrated Transformer（从 embedding 与位置信息讲起）：  
+1. Illustrated Transformer  
    https://jalammar.github.io/illustrated-transformer/
-2. Xavier 初始化原论文（偏理论）：  
+2. Xavier 初始化（Glorot & Bengio）  
    http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf
-3. 一篇「从零搭 Transformer」的入门文章（英文 Medium，风格偏教程）：  
+3. Transformer 从零搭（Medium，英文）  
    https://medium.com/@ibnashraf110/building-a-transformer-from-scratch-a-complete-beginners-g-be2a1fd17968
 
 ---
 
-## 5. 费曼学习法：用「查表」解释 Embedding
+## 5. 用「查表」解释 Embedding
 
-请你不用公式，回答：
+不用公式，回答：
 
 1. Embedding 和「one-hot 再乘一个大矩阵」为什么等价？  
 2. 为什么要对一整段 token 做池化（本 demo 用平均）？真实 Transformer 用什么替代它？  

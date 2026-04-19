@@ -1,6 +1,6 @@
-# Phase 01 学习卡片：GPU 上的矩阵乘法（GEMM）
+# Phase 01：GPU 上的矩阵乘法（GEMM）
 
-面向初学者的背景、图示、费曼自检与练习题。配合本目录的 `gemm.cu` / `main.cu` 阅读。
+背景、图、口头自检、习题。配合本目录 `gemm.cu` / `main.cu`。
 
 ---
 
@@ -9,13 +9,13 @@
 把线性代数里的矩阵乘法 \(C = A \times B\) 搬到 GPU 上：学会**分配显存**、**在 CPU 与 GPU 之间拷贝数据**，再写两种 kernel：
 
 - **朴素版**：一个线程算 \(C\) 的一个元素，思路最直观，速度慢。
-- **分块（tiling）版**：把数据搬进**共享内存（shared memory）**，让同一块里的线程复用读入的 \(A\)、\(B\) 片段，更接近「高性能 GEMM」的入门形态。
+- **分块（tiling）版**：数据进 **shared memory**，块内线程复用读入的 \(A\)、\(B\) 片段（常见高性能 GEMM 的起点）。
 
-最后用 **CPU 上的 FP32 GEMM** 当「标准答案」，对比误差，建立「GPU 结果可信」的习惯。
+最后用 **CPU 上的 FP32 GEMM** 作参考，对一下误差。
 
 ---
 
-## 2. 一张图看懂数据流（从主机到设备）
+## 2. 数据流（主机 → 设备）
 
 ```mermaid
 flowchart LR
@@ -38,7 +38,7 @@ flowchart LR
   hRef -.->|"max_abs_diff"| hGpu
 ```
 
-> **「图文并茂」补充**：网上有大量**示意图**讲 tiled GEMM 如何把大矩阵切成小块；下面「扩展阅读」里的 NVIDIA 技术博客就是经典配图文章。
+网上有不少 tiled GEMM 的示意图；扩展阅读里 NVIDIA 那篇带图。
 
 ---
 
@@ -53,24 +53,23 @@ flowchart LR
 
 ---
 
-## 4. 扩展阅读（建议按顺序点开）
+## 4. 扩展阅读
 
-1. NVIDIA 技术博客：如何用分块思路写高性能矩阵乘（配图、讲动机）：  
+1. NVIDIA：分块矩阵乘（CUDA tile）  
    https://developer.nvidia.com/blog/how-to-write-high-performance-matrix-multiply-in-nvidia-cuda-tile/
-2. 一篇偏「教学向」的 GEMM / tiling 图解博客（作者 Seth Weidman）：  
+2. Seth Weidman：GEMM / tiling  
    https://www.sethweidman.com/blog/cuda_matmul.html
-3. Stack Overflow 上关于「非整除 block 大小时 tiling」的讨论（遇到边界条件时很有用）：  
+3. Stack Overflow：tile 与矩阵尺寸不整除时的边界  
    https://stackoverflow.com/questions/18815489/cuda-tiled-matrix-matrix-multiplication-with-shared-memory-and-matrix-size-whic/18856054
 
 ---
 
-## 5. 费曼学习法（本阶段怎么用）
+## 5. 用简单话讲清楚（自检）
 
-Richard Feynman 的方法可以概括成：**选一个概念 → 用极简单的话讲出来 → 发现讲不顺的地方 → 回去补 → 再讲一遍**。  
-更细的「四步」在 freeCodeCamp 这篇里有整理（英文）：  
+可选（英文，步骤拆得细一点）：  
 https://www.freecodecamp.org/news/how-to-understand-complex-coding-concepts-better-using-the-feynman-technique/
 
-**建议你口头回答（或写 5 句话）：**
+口头或写 5 句：
 
 1. 不用术语：为什么 GPU 算矩阵乘往往比「一个大 for 循环的 CPU」快？（提示：并行、带宽。）
 2. 为什么 naive kernel 会「很费显存带宽」？
@@ -78,7 +77,7 @@ https://www.freecodecamp.org/news/how-to-understand-complex-coding-concepts-bett
 4. 为什么要用 `cudaDeviceSynchronize()` 再读回结果？
 5. 若 GPU 结果和 CPU 差 `1e-3`，可能有哪些原因？（提示：非结合律、fast-math、累加顺序。）
 
-讲给「完全不懂 CUDA 的朋友」听一遍；卡住的地方就是下一轮学习的入口。
+讲给不懂 CUDA 的人听；卡壳处再回去补。
 
 ---
 
@@ -90,7 +89,7 @@ https://www.freecodecamp.org/news/how-to-understand-complex-coding-concepts-bett
 **Q4.** 为什么对比 CPU 时常用 `max_abs_diff` 而不是只打印一两个元素？  
 **Q5.** block 维度 `(16,16)` 与 grid 维度如何与矩阵大小 \(M,N\) 关联？
 
-### 参考答案（先自己做再看）
+### 参考答案（先自己做）
 
 1. 一般会拷贝错数据或崩溃；属于常见低级错误。  
 2. 第一次：保证同一块 tile 的 `As`/`Bs` 写完再读；第二次：保证乘加阶段读完共享内存再加载下一轮 tile。  

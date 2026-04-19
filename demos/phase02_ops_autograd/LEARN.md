@@ -1,4 +1,4 @@
-# Phase 02 学习卡片：Softmax、LayerNorm、Attention 与「梯度对不对」
+# Phase 02：Softmax、LayerNorm、Attention 与梯度检查
 
 本阶段有三个小可执行文件：`sm.cu`（softmax）、`ln.cu`（LayerNorm）、`attn.cu`（极简注意力）。核心思想是：**GPU 做 forward**，**CPU 上做数值梯度 / 解析梯度对照**。
 
@@ -8,13 +8,13 @@
 
 - **Softmax**：把一组任意实数变成「和为 1 的概率分布」，数值上要先减最大值防止指数爆炸。
 - **LayerNorm**：对每个向量在**特征维**上做「减均值、除方差」，让训练更稳。
-- **Scaled Dot-Product Attention**：用 \(Q,K,V\) 做「查询—键—值」的加权汇聚；你手里的 `attn.cu` 用**极小尺寸**把数学链条跑通。
+- **Scaled Dot-Product Attention**：\(Q,K,V\) 加权汇聚；`attn.cu` 用小尺寸演示。
 
 同时接触 **gradcheck（梯度检查）** 的思想：用「微微扰动输入 → 看损失变化」的**数值梯度**，对照你推导或实现的**解析梯度**。
 
 ---
 
-## 2. 一张图看懂 Attention（概念版）
+## 2. Attention（概念）
 
 ```mermaid
 flowchart TB
@@ -31,14 +31,14 @@ flowchart TB
   V --> O
 ```
 
-> **「图文并茂」强烈推荐**：Jay Alammar 的《The Illustrated Transformer》是业界最出名的图解长文之一（英文，图很多）：  
-> https://jalammar.github.io/illustrated-transformer/
+Jay Alammar：The Illustrated Transformer（英文，图多）  
+https://jalammar.github.io/illustrated-transformer/
 
 ---
 
 ## 3. 和本目录代码怎么对应
 
-| 文件 | 你应抓住的主线 |
+| 文件 | 对应 |
 |------|----------------|
 | `sm.cu` | row-wise softmax kernel；交叉熵损失的梯度为什么是 `p - one_hot` |
 | `ln.cu` | 最后一维 normalize；损失取 `sum(y^2)` 是为了让梯度不退化（相对「对 y 求和」更合理） |
@@ -48,16 +48,16 @@ flowchart TB
 
 ## 4. 扩展阅读
 
-1. The Illustrated Transformer（图解 Transformer，强烈建议收藏）：  
+1. The Illustrated Transformer  
    https://jalammar.github.io/illustrated-transformer/
-2. Softmax 数值稳定（log-sum-exp 思路在各类教程里都会讲；可搜索 "log-sum-exp trick"）：  
+2. LogSumExp（softmax 数值稳定常用）  
    https://en.wikipedia.org/wiki/LogSumExp
-3. LayerNorm 与 BatchNorm 的对比（概念向）：  
-   https://arxiv.org/abs/1607.06450（原论文，偏数学）
+3. LayerNorm vs BatchNorm（论文）  
+   https://arxiv.org/abs/1607.06450
 
 ---
 
-## 5. 费曼学习法：请你讲给「只学过线性代数」的人听
+## 5. 讲给「只学过线性代数」的人听
 
 1. Softmax 的输出有什么性质？为什么适合当作「注意力权重」？  
 2. 为什么要除以 \(\sqrt{d}\)（scaled）？直觉上解决什么问题？  

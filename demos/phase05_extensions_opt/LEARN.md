@@ -1,18 +1,18 @@
-# Phase 05 学习卡片：FP16 与「更快更省显存」的入门
+# Phase 05：FP16 与带宽/显存
 
-本目录 demo 用 **FP16 存矩阵、FP32 累加** 的朴素 GEMM，对照 **FP32 CPU 参考**。你会直观看到：更低位宽 → 更省带宽/存储，但数值误差容忍度要放宽。
+**FP16 存矩阵、FP32 累加** 的朴素 GEMM，对 **FP32 CPU**。位宽低 → 省带宽/显存，误差阈值通常要比 FP32 宽。
 
 ---
 
 ## 1. 这一阶段在学什么
 
 - **`__half` 与转换**：`__float2half` / `__half2float` 是 CPU/GPU 间与计算中最常用的桥梁之一。
-- **混合精度直觉**：很多高性能 kernel 会「半精度存取、单精度累加」，在精度与速度之间折中。
+- **混合精度**：常见写法是半精度存取、单精度累加，折中速度与误差。
 - **误差来源**：舍入、累加顺序、fast-math 等，会让你更理解「为什么阈值不能照搬 FP32」。
 
 ---
 
-## 2. 一张图：FP32 参考 vs FP16 kernel
+## 2. FP32 参考 vs FP16 kernel
 
 ```mermaid
 flowchart LR
@@ -36,20 +36,20 @@ flowchart LR
 
 ---
 
-## 4. 扩展阅读（官方文档优先）
+## 4. 扩展阅读
 
-1. CUDA Math API：Half Precision Intrinsics（官方）：  
+1. CUDA Math API：Half intrinsics  
    https://docs.nvidia.com/cuda/cuda-math-api/group__CUDA__MATH__INTRINSIC__HALF.html
-2. Half 精度转换与数据移动（官方小节）：  
+2. Half 转换与数据移动  
    https://docs.nvidia.com/cuda/cuda-math-api/cuda_math_api/group__CUDA__MATH____HALF__MISC.html
-3. 一篇偏入门的 FP16 CUDA 写作介绍（Medium，英文）：  
+3. FP16 CUDA 入门（Medium，英文）  
    https://ion-thruster.medium.com/an-introduction-to-writing-fp16-code-for-nvidias-gpus-da8ac000c17f
 
 ---
 
-## 5. 费曼学习法：用「有效数字」解释 FP16
+## 5. 用「有效数字」解释 FP16
 
-请你回答：
+回答：
 
 1. FP16 比 FP32 少哪些「比特」？直觉上会影响什么？  
 2. 为什么累加经常用 FP32？  
