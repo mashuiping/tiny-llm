@@ -7,13 +7,14 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 ENV_FILE="${SCRIPT_DIR}/k8s.env"
 
 # Remember exported env from parent (before defaults), for "env > k8s.env"
-HAS_ENV_NAMESPACE=0 HAS_ENV_POD=0 HAS_ENV_CONTAINER=0 HAS_ENV_REMOTE_ROOT=0 HAS_ENV_REMOTE_DIR=0 HAS_ENV_KUBE_CONTEXT=0
+HAS_ENV_NAMESPACE=0 HAS_ENV_POD=0 HAS_ENV_CONTAINER=0 HAS_ENV_REMOTE_ROOT=0 HAS_ENV_REMOTE_DIR=0 HAS_ENV_KUBE_CONTEXT=0 HAS_ENV_KUBECONFIG=0
 if [[ "${NAMESPACE+x}" == x ]]; then HAS_ENV_NAMESPACE=1; SAVED_ENV_NAMESPACE="$NAMESPACE"; fi
 if [[ "${POD_NAME+x}" == x ]]; then HAS_ENV_POD=1; SAVED_ENV_POD_NAME="$POD_NAME"; fi
 if [[ "${CONTAINER_NAME+x}" == x ]]; then HAS_ENV_CONTAINER=1; SAVED_ENV_CONTAINER_NAME="$CONTAINER_NAME"; fi
 if [[ "${REMOTE_ROOT+x}" == x ]]; then HAS_ENV_REMOTE_ROOT=1; SAVED_ENV_REMOTE_ROOT="$REMOTE_ROOT"; fi
 if [[ "${REMOTE_DIR+x}" == x ]]; then HAS_ENV_REMOTE_DIR=1; SAVED_ENV_REMOTE_DIR="$REMOTE_DIR"; fi
 if [[ "${KUBE_CONTEXT+x}" == x ]]; then HAS_ENV_KUBE_CONTEXT=1; SAVED_ENV_KUBE_CONTEXT="$KUBE_CONTEXT"; fi
+if [[ "${KUBECONFIG+x}" == x ]]; then HAS_ENV_KUBECONFIG=1; fi
 
 NAMESPACE_DEFAULT="tai-production"
 POD_NAME_DEFAULT="build-gpu"
@@ -44,6 +45,7 @@ load_env_file() {
         REMOTE_ROOT) REMOTE_ROOT="$val" ;;
         REMOTE_DIR) REMOTE_DIR="$val" ;;
         KUBE_CONTEXT) KUBE_CONTEXT="$val" ;;
+        KUBECONFIG) KUBECONFIG_ARG="$val" ;;
       esac
     fi
   done <"$f"
@@ -56,6 +58,8 @@ apply_saved_env_over_file() {
   if [[ "$HAS_ENV_REMOTE_ROOT" -eq 1 ]]; then REMOTE_ROOT="$SAVED_ENV_REMOTE_ROOT"; fi
   if [[ "$HAS_ENV_REMOTE_DIR" -eq 1 ]]; then REMOTE_DIR="$SAVED_ENV_REMOTE_DIR"; fi
   if [[ "$HAS_ENV_KUBE_CONTEXT" -eq 1 ]]; then KUBE_CONTEXT="$SAVED_ENV_KUBE_CONTEXT"; fi
+  # Env KUBECONFIG wins over k8s.env file: do not pass --kubeconfig so kubectl uses inherited env
+  if [[ "$HAS_ENV_KUBECONFIG" -eq 1 ]]; then KUBECONFIG_ARG=""; fi
 }
 
 KUBECONFIG_ARG=""
@@ -84,8 +88,9 @@ Options:
   --delete            Not implemented in v1 (exits with error)
   -h, --help          This help
 
-Environment: NAMESPACE, POD_NAME, CONTAINER_NAME, REMOTE_ROOT, REMOTE_DIR, KUBE_CONTEXT
-Config file: tools/k8s/k8s.env (optional, same variable names)
+Environment: NAMESPACE, POD_NAME, CONTAINER_NAME, REMOTE_ROOT, REMOTE_DIR,
+  KUBECONFIG (path to kubeconfig file), KUBE_CONTEXT (context name inside that file, not a path)
+Config file: tools/k8s/k8s.env (optional; supports KUBECONFIG, KUBE_CONTEXT, and pod vars above)
 
 Precedence: defaults < k8s.env < environment < CLI
 EOF
