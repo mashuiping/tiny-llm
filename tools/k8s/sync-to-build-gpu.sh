@@ -127,6 +127,18 @@ build_kubectl_base() {
   fi
 }
 
+# Stream a gzip’d tar to stdout. Prefer GNU tar (brew install gnu-tar → gtar): archives match Linux
+# extractors and avoid LIBARCHIVE.xattr / unknown pax keyword spam from macOS bsdtar.
+stream_local_tgz() {
+  if command -v gtar >/dev/null 2>&1; then
+    gtar --owner=0 --group=0 --numeric-owner -czf - "$@"
+  elif command -v gnutar >/dev/null 2>&1; then
+    gnutar --owner=0 --group=0 --numeric-owner -czf - "$@"
+  else
+    COPYFILE_DISABLE=1 tar -czf - --format ustar "$@"
+  fi
+}
+
 main() {
   load_env_file "$ENV_FILE"
   apply_saved_env_over_file
@@ -168,9 +180,8 @@ main() {
   "${KUBECTL[@]}" exec -n "$NAMESPACE" "$POD_NAME" -c "$CONTAINER_NAME" -- \
     mkdir -p "$REMOTE_DEST"
 
-  # BSD/GNU: --exclude-from before -T; newline-separated paths in LIST_FILE
-  # macOS tar embeds Apple xattrs; GNU tar on the Pod warns on LIBARCHIVE.* headers — strip with COPYFILE_DISABLE=1
-  (cd "$SRC_ROOT" && COPYFILE_DISABLE=1 tar -czf - "${TAR_EXCLUDE[@]}" -T "$LIST_FILE") | \
+  # --exclude-from before -T; newline-separated paths in LIST_FILE
+  (cd "$SRC_ROOT" && stream_local_tgz "${TAR_EXCLUDE[@]}" -T "$LIST_FILE") | \
     "${KUBECTL[@]}" exec -i -n "$NAMESPACE" "$POD_NAME" -c "$CONTAINER_NAME" -- \
       tar -xzf - -C "$REMOTE_DEST"
 
