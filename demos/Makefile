@@ -27,6 +27,7 @@ DEMO4_SRC := \
 	demos/phase04_train_generate/main.cpp \
 	demos/phase04_train_generate/tok.cpp \
 	demos/phase04_train_generate/dataset.cpp \
+	demos/phase04_train_generate/micro_lm.cpp \
 	demos/phase04_train_generate/train.cpp \
 	demos/phase04_train_generate/gen.cpp
 

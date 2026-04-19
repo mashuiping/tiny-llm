@@ -6,3 +6,5 @@
 
 # Local kubectl sync config (see tools/k8s/k8s.env.example)
 tools/k8s/k8s.env
+
+demos/build/
