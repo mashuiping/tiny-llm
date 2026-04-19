@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: build-gpu
+  namespace: tai-production
+spec:
+  # hostPID / privileged 一般 GPU 编译不需要，除非你们有硬性要求；先关掉更安全
+  restartPolicy: Never
+
+  containers:
+    - name: build
+      image: registry-test.ctyun.cn:30443/tai-develop/pytorch/pytorch:2.7.1-cuda12.8-cudnn9-devel 
+      command: ["sleep", "infinity"]
+
+      resources:
+        limits:
+          nvidia.com/gpu: "1"   # 申请 1 张 GPU；多块就改成 2、4…
+        requests:
+          nvidia.com/gpu: "1"
+
+  # nodeSelector:
+  #   accelerator: nvidia-tesla-t4
+  #   kub存目录
+  # volumes:
+  #   - name: work
+  #     emptyDir: {}
+  # volumeMounts 同理配到容器里
