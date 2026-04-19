@@ -169,7 +169,8 @@ main() {
     mkdir -p "$REMOTE_DEST"
 
   # BSD/GNU: --exclude-from before -T; newline-separated paths in LIST_FILE
-  (cd "$SRC_ROOT" && tar -czf - "${TAR_EXCLUDE[@]}" -T "$LIST_FILE") | \
+  # macOS tar embeds Apple xattrs; GNU tar on the Pod warns on LIBARCHIVE.* headers — strip with COPYFILE_DISABLE=1
+  (cd "$SRC_ROOT" && COPYFILE_DISABLE=1 tar -czf - "${TAR_EXCLUDE[@]}" -T "$LIST_FILE") | \
     "${KUBECTL[@]}" exec -i -n "$NAMESPACE" "$POD_NAME" -c "$CONTAINER_NAME" -- \
       tar -xzf - -C "$REMOTE_DEST"
 
