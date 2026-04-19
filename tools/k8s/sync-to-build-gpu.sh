@@ -67,6 +67,42 @@ CONTEXT_ARG=""
 SRC_ROOT="$REPO_ROOT"
 DRY_RUN=0
 DELETE_REMOTE_EXTRA=0
+PRINT_POD_YAML=0
+WRITE_POD_MANIFEST=0
+APPLY_POD=0
+
+# Canonical build-gpu Pod manifest (single source of truth). Regenerate k8s/build-gpu.pod.yaml via --write-pod-manifest.
+pod_manifest() {
+  cat <<'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: build-gpu
+  namespace: tai-production
+spec:
+  # hostPID / privileged 一般 GPU 编译不需要，除非你们有硬性要求；先关掉更安全
+  restartPolicy: Never
+
+  containers:
+    - name: build
+      image: registry-test.ctyun.cn:30443/tai-develop/pytorch/pytorch:2.7.1-cuda12.8-cudnn9-devel
+      command: ["sleep", "infinity"]
+
+      resources:
+        limits:
+          nvidia.com/gpu: "1"   # 申请 1 张 GPU；多块就改成 2、4…
+        requests:
+          nvidia.com/gpu: "1"
+
+  # nodeSelector:
+  #   accelerator: nvidia-tesla-t4
+  #   kub存目录
+  # volumes:
+  #   - name: work
+  #     emptyDir: {}
+  # volumeMounts 同理配到容器里
+EOF
+}
 
 usage() {
   cat <<'EOF'
@@ -75,7 +111,12 @@ Usage: sync-to-build-gpu.sh [options]
 Sync tracked/untracked non-ignored files (git ls-files -co --exclude-standard),
 minus patterns in .syncignore (if present), to Pod via tar stream.
 
-Options:
+Pod manifest (embedded in this script — edit pod_manifest() here):
+  --print-pod-yaml       Print build-gpu Pod YAML to stdout and exit
+  --write-pod-manifest   Write k8s/build-gpu.pod.yaml from embedded manifest and exit
+  --apply-pod            kubectl apply the embedded manifest (uses same kube flags as sync) and exit
+
+Sync options:
   --kubeconfig PATH   Pass to kubectl
   --context NAME      kubectl context (overrides KUBE_CONTEXT)
   --namespace NS      Kubernetes namespace
@@ -109,6 +150,9 @@ parse_args() {
       --remote-dir) REMOTE_DIR="$2"; shift 2 ;;
       --dry-run) DRY_RUN=1; shift ;;
       --delete) DELETE_REMOTE_EXTRA=1; shift ;;
+      --print-pod-yaml) PRINT_POD_YAML=1; shift ;;
+      --write-pod-manifest) WRITE_POD_MANIFEST=1; shift ;;
+      --apply-pod) APPLY_POD=1; shift ;;
       -h|--help) usage; exit 0 ;;
       *) echo "Unknown option: $1" >&2; usage; exit 1 ;;
     esac
@@ -143,6 +187,22 @@ main() {
   load_env_file "$ENV_FILE"
   apply_saved_env_over_file
   parse_args "$@"
+
+  if [[ "$PRINT_POD_YAML" -eq 1 ]]; then
+    pod_manifest
+    exit 0
+  fi
+  if [[ "$WRITE_POD_MANIFEST" -eq 1 ]]; then
+    mkdir -p "${REPO_ROOT}/k8s"
+    pod_manifest >"${REPO_ROOT}/k8s/build-gpu.pod.yaml"
+    echo "Wrote ${REPO_ROOT}/k8s/build-gpu.pod.yaml"
+    exit 0
+  fi
+  if [[ "$APPLY_POD" -eq 1 ]]; then
+    build_kubectl_base
+    pod_manifest | "${KUBECTL[@]}" apply -f -
+    exit 0
+  fi
 
   REMOTE_DEST="${REMOTE_ROOT%/}/${REMOTE_DIR}"
   LIST_FILE="$(mktemp)"
