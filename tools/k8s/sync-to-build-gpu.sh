@@ -71,20 +71,21 @@ PRINT_POD_YAML=0
 WRITE_POD_MANIFEST=0
 APPLY_POD=0
 
-# Canonical build-gpu Pod manifest (single source of truth). Regenerate k8s/build-gpu.pod.yaml via --write-pod-manifest.
+# Pod manifest template: metadata.name / namespace / container name use the same vars as sync
+# (defaults → tools/k8s/k8s.env → environment → CLI). Regenerate k8s/build-gpu.pod.yaml via --write-pod-manifest.
 pod_manifest() {
-  cat <<'EOF'
+  cat <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
-  name: build-gpu
-  namespace: tai-production
+  name: ${POD_NAME}
+  namespace: ${NAMESPACE}
 spec:
   # hostPID / privileged 一般 GPU 编译不需要，除非你们有硬性要求；先关掉更安全
   restartPolicy: Never
 
   containers:
-    - name: build
+    - name: ${CONTAINER_NAME}
       image: registry-test.ctyun.cn:30443/tai-develop/pytorch/pytorch:2.7.1-cuda12.8-cudnn9-devel
       command: ["sleep", "infinity"]
 
@@ -111,10 +112,10 @@ Usage: sync-to-build-gpu.sh [options]
 Sync tracked/untracked non-ignored files (git ls-files -co --exclude-standard),
 minus patterns in .syncignore (if present), to Pod via tar stream.
 
-Pod manifest (embedded in this script — edit pod_manifest() here):
-  --print-pod-yaml       Print build-gpu Pod YAML to stdout and exit
-  --write-pod-manifest   Write k8s/build-gpu.pod.yaml from embedded manifest and exit
-  --apply-pod            kubectl apply the embedded manifest (uses same kube flags as sync) and exit
+Pod manifest (template in pod_manifest(); NAMESPACE / POD_NAME / CONTAINER_NAME from k8s.env + env + CLI, same as sync):
+  --print-pod-yaml       Print Pod YAML to stdout and exit
+  --write-pod-manifest   Write k8s/build-gpu.pod.yaml and exit
+  --apply-pod            kubectl apply the manifest (uses same kube flags as sync) and exit
 
 Sync options:
   --kubeconfig PATH   Pass to kubectl
