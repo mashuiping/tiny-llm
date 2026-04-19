@@ -17,10 +17,23 @@ static std::string read_all(const char* path) {
   return ss.str();
 }
 
+static std::string load_fixture_corpus() {
+  static const char* kCandidates[] = {
+      "demos/phase04_train_generate/fixture.txt",  // cwd = repo root
+      "phase04_train_generate/fixture.txt",        // cwd = demos/
+      "../phase04_train_generate/fixture.txt",     // cwd = demos/build/
+  };
+  for (const char* p : kCandidates) {
+    const std::string s = read_all(p);
+    if (!s.empty()) return s;
+  }
+  return {};
+}
+
 int main() {
-  const std::string text = read_all("demos/phase04_train_generate/fixture.txt");
+  const std::string text = load_fixture_corpus();
   if (text.empty()) {
-    std::fprintf(stderr, "fixture missing (run from repo root)\n");
+    std::fprintf(stderr, "fixture missing (try cwd repo root, demos/, or demos/build/)\n");
     return 1;
   }
 
