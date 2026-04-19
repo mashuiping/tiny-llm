@@ -7,7 +7,7 @@ KERNELS = kernels/gemm.cu kernels/attention.cu kernels/softmax.cu kernels/layern
 
 SRC = main.cpp core/tensor.cpp core/autograd.cpp core/optimizer.cpp layers/embedding.cpp layers/linear.cpp layers/layernorm.cpp layers/transformer.cpp layers/model.cpp data/poetry_dataset.cpp data/tokenizer.cpp train/trainer.cpp generate/generator.cpp
 
-.PHONY: all train generate clean
+.PHONY: all train generate clean sync
 
 all: train generate
 
@@ -17,6 +17,9 @@ train: $(SRC) $(KERNELS)
 
 generate: $(SRC) $(KERNELS)
 	$(NVCC) $(NVCC_FLAGS) $(CUDA_ARCH) $(INCLUDES) -o generate $(SRC) $(KERNELS) -lcublas
+
+sync:
+	./tools/k8s/sync-to-build-gpu.sh
 
 clean:
 	rm -f train generate *.o
