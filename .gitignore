@@ -8,3 +8,4 @@
 tools/k8s/k8s.env
 
 demos/build/
+.cursor
